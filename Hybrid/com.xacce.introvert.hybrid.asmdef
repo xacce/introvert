@@ -1,0 +1,27 @@
+{
+    "name": "com.xacce.introvert.hybrid",
+    "references": [
+        "Unity.Transforms",
+        "Unity.Burst",
+        "Unity.Entities",
+        "Unity.Mathematics",
+        "Unity.Collections",
+        "Unity.AI.Navigation",
+        "Unity.Entities.Hybrid",
+        "XaDotsCore.Runtime",
+        "com.xacce.susanin.runtime",
+        "com.xacce.spatialhashing",
+        "com.xacce.introvert",
+        "XaDotsCore.Hybrid"
+    ],
+    "includePlatforms": [
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
