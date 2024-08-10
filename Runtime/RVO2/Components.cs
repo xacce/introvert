@@ -4,7 +4,7 @@ using Unity.Mathematics;
 
 namespace Introvert.RVO2
 {
-    public partial struct IntrovertRvoAgent : IComponentData
+    public partial struct IntrovertAgent : IComponentData
     {
         public float2 velocity;
     }

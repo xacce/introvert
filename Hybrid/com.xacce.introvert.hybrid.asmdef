@@ -1,5 +1,6 @@
 {
     "name": "com.xacce.introvert.hybrid",
+    "rootNamespace": "Xacce.Introvert.Hybrid",
     "references": [
         "Unity.Transforms",
         "Unity.Burst",

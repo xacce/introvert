@@ -1,6 +1,6 @@
-﻿using BlobActor.Runtime;
-using Core.Runtime;
+﻿using Core.Runtime;
 using GameReady.Runtime;
+using Introvert.RVO2;
 using Pathfinding;
 using RVO;
 using SpatialHashing.Uniform;
@@ -11,8 +11,9 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using Xacce.BlobActor.Runtime;
 
-namespace Introvert.RVO2
+namespace Xacce.Introvert.Runtime.RVO2
 {
     public struct Visitor : IUniformSpatialQueryCollector
     {
@@ -44,15 +45,17 @@ namespace Introvert.RVO2
     }
 
     [BurstCompile]
-    [WithAll(typeof(IntrovertRvoAgent))]
+    [WithAll(typeof(IntrovertAgent))]
     [WithNone(typeof(Dead))]
     public partial struct IntrovertRvo2Job : IJobEntity, IJobEntityChunkBeginEnd
     {
         public float timeStep;
         [ReadOnly] public ComponentLookup<LocalToWorld> localToWorldRo;
-        [NativeDisableParallelForRestriction] public ComponentLookup<IntrovertRvoAgent> rvoAgentRw;
-        [ReadOnly] public ComponentLookup<ActorRuntime> actorRuntimeLookupRo;
-        [ReadOnly] public ComponentLookup<Actor> actorLookupRo;
+        [NativeDisableParallelForRestriction] public ComponentLookup<IntrovertAgent> rvoAgentRw;
+        [ReadOnly] public ComponentLookup<BlobActorFlags> actorFlagsRo;
+        [ReadOnly] public ComponentLookup<BlobActorLimits> actorLimitsRo;
+        [ReadOnly] public ComponentLookup<DynamicObjectVelocity> dynamicRo;
+        [ReadOnly] public ComponentLookup<BlobActor.Runtime.BlobActor> actorLookupRo;
 
         [NativeDisableContainerSafetyRestriction]
         private NativeList<UniformSpatialElement> neighbours;
@@ -64,13 +67,15 @@ namespace Introvert.RVO2
         private NativeList<Line> lines;
 
         public UniformSpatialDatabaseReadonlyBridge bridge;
-        [ReadOnly] public ComponentLookup<PolyObstacle.PolyObstacle> obstacleLineRo;
+        [ReadOnly] public ComponentLookup<global::Xacce.Introvert.Runtime.PolyObstacle.PolyObstacle> obstacleLineRo;
 
         [BurstCompile]
         public void Execute(Entity entity)
         {
-            var runtimeActor = actorRuntimeLookupRo[entity];
-            if ((runtimeActor.flags & ActorRuntime.Flag.AvoidanceEnabled) == 0) return;
+            var flags = actorFlagsRo[entity];
+            if ((flags.flags & BlobActorFlags.Flag.AvoidanceEnabled) == 0) return;
+            var dynamicObject = dynamicRo[entity];
+            var limits = actorLimitsRo[entity];
             neighbours.Clear();
             obstacles.Clear();
             lines.Clear();
@@ -85,7 +90,7 @@ namespace Introvert.RVO2
             var rvo2Agent = rvoAgentRw[entity];
 
             ref var actorBlob = ref actorLookupRo[entity].blob.Value;
-            var runtimeAgentVelocity = new float2(runtimeActor.velocity.x, runtimeActor.velocity.z);
+            var runtimeAgentVelocity = new float2(dynamicObject.velocity.x, dynamicObject.velocity.z);
             UniformSpatialDatabase.QueryAABB(bridge.database, bridge.cellsUnsafe, bridge.elementsUnsafe, ltw.Position, actorBlob.neighborsExtents, ref visitor);
 
             #region Obstacles
@@ -364,8 +369,9 @@ namespace Introvert.RVO2
             {
                 var neightbor = neighbours[i];
                 if (neightbor.entity.Equals(entity)) continue;
-                var otherRuntimeAgent = actorRuntimeLookupRo[neightbor.entity];
-                var otherVelocity = new float2(otherRuntimeAgent.velocity.x, otherRuntimeAgent.velocity.z);
+                var otherFlags = actorFlagsRo[neightbor.entity];
+                var otherDynamicObject = dynamicRo[neightbor.entity];
+                var otherVelocity = new float2(otherDynamicObject.velocity.x, otherDynamicObject.velocity.z);
                 ref var otherActorBlob = ref actorLookupRo[neightbor.entity].blob.Value;
                 var otherLtw = localToWorldRo[neightbor.entity];
 
@@ -442,10 +448,10 @@ namespace Introvert.RVO2
 
             float2 newVelocity = float2.zero;
 
-            int lineFail = RVO2Math.linearProgram2(lines, runtimeActor.maxSpeed, new float2(runtimeActor.velocity.x, runtimeActor.velocity.z), false, ref newVelocity);
+            int lineFail = RVO2Math.linearProgram2(lines, limits.maxSpeed, new float2(dynamicObject.velocity.x, dynamicObject.velocity.z), false, ref newVelocity);
             if (lineFail < lines.Length)
             {
-                RVO2Math.linearProgram3(lines, numObstLines, lineFail, runtimeActor.maxSpeed, ref newVelocity);
+                RVO2Math.linearProgram3(lines, numObstLines, lineFail, limits.maxSpeed, ref newVelocity);
             }
 
             // rvo2Agent.velocity = newVelocity; //todo research why sometimes we gen null velocity

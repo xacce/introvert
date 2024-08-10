@@ -40,9 +40,9 @@ namespace Introvert.PolyObstacle.Authoring
                     var curPos = As2d(curr.position);
                     var nextPos = As2d(next.position);
                     var nextNextPos = As2d(nextNext.position);
-                    var obstacle = new PolyObstacle()
+                    var obstacle = new Xacce.Introvert.Runtime.PolyObstacle.PolyObstacle()
                     {
-                        p1 = new PolyObstacle.Point()
+                        p1 = new Xacce.Introvert.Runtime.PolyObstacle.PolyObstacle.Point()
                         {
                             p = curPos,
                             convex = RVOMath.leftOf(prevPos, curPos, nextPos) >= 0.0f,
@@ -50,7 +50,7 @@ namespace Introvert.PolyObstacle.Authoring
                             prevInvDirection = math.normalize(curPos - prevPos),
                             index = 0,
                         },
-                        p2 = new PolyObstacle.Point()
+                        p2 = new Xacce.Introvert.Runtime.PolyObstacle.PolyObstacle.Point()
                         {
                             p = nextPos,
                             convex = RVOMath.leftOf(curPos, nextPos, nextNextPos) >= 0.0f,

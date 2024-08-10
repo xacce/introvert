@@ -5,6 +5,7 @@ using RVO;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Mathematics;
+using Xacce.Introvert.Runtime.RVO2;
 
 namespace Pathfinding
 {

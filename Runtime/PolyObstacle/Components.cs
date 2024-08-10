@@ -1,7 +1,7 @@
 ﻿using Unity.Entities;
 using Unity.Mathematics;
 
-namespace Introvert.PolyObstacle
+namespace Xacce.Introvert.Runtime.PolyObstacle
 {
     public partial struct PolyObstacle : IComponentData
     {
